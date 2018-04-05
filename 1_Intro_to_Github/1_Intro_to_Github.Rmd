@@ -1,0 +1,380 @@
+---
+title: "Theoretical Ecology 
+
+\n(EEMB 595TE) Spring 2018
+
+\n Class 1: Introduction to Github"
+
+output:
+  html_document:
+    highlight: zenburn
+    theme: paper
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+---
+
+<img src="/Users/Cici/EEMB595TE/1_Intro_to_Github/UCSB_logo.png" style="position:absolute;top:9px;right:115px;width:150px;height=240px" />
+
+<img src="/Users/Cici/EEMB595TE/1_Intro_to_Github/Octocat.png" style="position:absolute;top:100px;right:115px;width:150px;height=240px" />
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<br>
+
+## Objectives
+
+(1) To learn how to obtain class materials using the terminal (Mac)/command prompt (Windows)
+
+(2) To learn what is Git, Github, GitDesktop, and Rstudio
+
+<br>
+
+## Accessing the course materials
+
+GitHub is an open source version control system (VCS) called Git. Git is responsible for everything GitHub-related that happens locally on your computer. There are a few things that you will need to do to get going with git/GitHub. Mainly, you must create free a GitHub account and get your machine ready to interact with your account. 
+
+Github is the web interface of Git. 
+
+<br>
+
+## Cloning the course repository to your computer
+
+Open terminal/bash and navigate to the directory where you would like to hold the course materials. If you are not familiar or comfortable using the command line, we **highly** recommend using the root directory. For the rest of this quick intro, we will refer to the path to your root directory as ``rootPath``.  
+
+1.  To navigate quickly to the root directory type the following terminal/bash window:
+
+    ```bash
+    cd 
+    ```
+
+2.  To clone the course repository into your current directory paste the following into your terminal/bash window: 
+
+    ```bash
+    git clone https://github.com/Grace89/EEMB595TE.git
+    ```
+
+<br>
+
+## Updating the course materials each week
+
+We plan to update the course repository on a regular basis. It is likely that you will need to update your materials several times per day.  To do this you will ``pull`` a current copy of the repository. To do this: 
+
+1.  You'll need to open your terminal/bash.
+
+2.  Navigate to the course repository. If this is in your root directory then type:
+
+    ```bash
+    cd
+    cd EEMB595TE
+    ```
+    
+3.  Paste the following into the terminal/bash:
+
+    ```bash
+    git pull
+    ```
+
+<br>
+
+## EXTREMELY IMPORTANT: Using course materials 
+
+Each time you ``pull`` and updated version of the course repository your local machine will have a clean (untouched) copy of **all** course materials.  **Therefore, if you modify the course materials it is extremely important that you save your work under a different name.**  If you fail to save your work with a new name, your work will be **lost** the next time you ``pull`` to get the most up-to-date materials. Where you choose to save your work doesn't matter. You can choose a brand new directory or you can save within the directory that you've created for our course. 
+
+Inevitably, you will make an inadvertent or deliberate change to a file in the course materials. In this case, your ``pull`` will fail. To remedy this:
+
+1.  You'll need to open your terminal/bash.
+
+2.  Execute the following simple steps one at a time in your terminal/bash:
+
+    ```bash
+    git checkout .
+    git pull
+    ```
+<br>
+
+## Before starting
+
+Before starting this tutorital, you will need to download several pieces of software:
+
+- RStudio
+
+      https://www.rstudio.com/
+      
+- Git
+
+      https://git-scm.com/downloads
+      
+- GitDesktop
+      
+      - New Version
+      https://desktop.github.com/
+      
+      - Old Mac version:
+      https://central.github.com/mac/latest
+      
+      - Old Windows version:
+      https://www.filehorse.com/download-github-desktop/old-versions/
+
+
+- Github
+
+      http://github.com
+
+- Note that you can eligible for unlimited private repositories as a student on Github (with a standard account you only get 5 private repositories):
+
+      https://education.github.com/discount_requests/new
+
+<br>
+
+## What is Git?
+
+- Most widely used version control system
+
+- Actively maintained, open source project
+
+- Originally developed in 2005
+
+- Git with what underlies Github
+
+<br>
+
+## What is Github? And why use it?
+
+- Github: a web interface for Git
+
+- Version control
+  
+    - Keeps track of deletions/additions to code
+    
+    - Shows changes that collaboratos have made
+    
+    - Have 1 file rather than 20 with different names, date, and version numbers 
+
+- Good workflow with collaborators
+    
+    - One location for:
+        
+        - Code
+        
+        - Collaborator discussions
+
+- Reproducible and transparent methods and results
+
+    - You can post PDFs, code, and data all in a single location for others to use
+    
+    - If posted prior to peer-review of manuscript, the reviewer can look at the code and more effectively evaluate and interpret what you are doing/saying in your methods
+    
+- Need more convinving? Read the tale of Julia Stewart at NCEAS 
+  
+    - "Our path to better science in less time using open data science tools"
+    
+    - PDF available in this repository
+
+<br>
+
+## Why Github Desktop?
+
+- Another way to use version control if you don't like the Rstudio-Github connection
+
+- Open-source
+
+- Cross-platform experience
+
+<br>
+
+## Why RStudio?
+
+- Partitions windows nicely (unlike R)
+
+    - All relevent windows are docked in a single application window
+    
+- Graphical workspace
+
+    - Rather than typing ls() to see the objects in your local environment; you can see the objects you've created
+    
+    - You can also click on the object and it will  show you the object.
+    
+- Text Editor included
+
+- Cross-platform interface
+  
+      - Windows, Mac, etc.
+
+- Tab-completion of filenames, function names, and arguments
+
+      - When you start typing a name, then hit tab, and RStudio will autocomplete the word (saves you from typos!)
+
+- Produces seamless Rmarkdown files using knitr
+
+      - You can embed code to make the file easy to read for collaborators (or classes)
+
+<br>
+
+## Connecting RStudio and Github
+
+**(1) Tell Rstudio who you are on Github**
+
+In Rstudio, *Tools* -> *Version Control*, select *Git*
+
+Then, *Tools* -> *Global Options* select *Git/SVN* tab
+Ensure that the path to the executable is correct (i.e., correct paths to git and to SVN).
+This is especially importnat for *Windows* where it may not default correctly (e.g., C:/Program Files (x86)/Git/bin/git.exe)
+
+<img src="/Users/Cici/EEMB595TE/1_Intro_to_Github/Git1.png" style="position:center"/>
+
+Now hit * Create RSA Key*
+
+Close that window
+
+Click on *View public key* and copy the displayed public key.
+
+<img src="/Users/Cici/EEMB595TE/1_Intro_to_Github/Git2.png" style="position:center"/>
+
+Now- open your Github account settings and click the SSH keys tab. 
+
+<img src="/Users/Cici/EEMB595TE/1_Intro_to_Github/Git3.jpeg" style="position:center"/>
+
+Click on *Add SSH key*
+
+<img src="/Users/Cici/EEMB595TE/1_Intro_to_Github/Git4.jpeg" style="position:center"/>
+
+**(2) Tell Git who you are on your local Rstudio**
+*Note, Git is a piece of software running on your computer.*
+*Github is an online repository*
+
+In Rstudio, click on *Tools* -> *Shell*
+
+Then enter:
+```{r}
+# $ git config --global user.email "your email"
+
+# $ git config --global user.name "your github username"
+```
+**(3) Create a project**
+
+In Rstudio, click on *File* -> *New project* -> *New Directory*
+
+<img src="/Users/Cici/EEMB595TE/1_Intro_to_Github/Git5.png" style="position:center"/>
+
+<img src="/Users/Cici/EEMB595TE/1_Intro_to_Github/Git6.png" style="position:center"/>
+
+Name the project *Test* and *Check a git repository*
+
+<img src="/Users/Cici/EEMB595TE/1_Intro_to_Github/Git7.png" style="position:center"/>
+
+Now, in RStudio, create a new script (*File* -> *R Script*)
+
+In the text editor, write:
+"#Test Script"
+
+<img src="/Users/Cici/EEMB595TE/1_Intro_to_Github/Git8.png" style="position:center"/>
+
+Then, *Save* the Project.
+
+Now, in the "Environment/history panel", there should be a Git tab. Click on the square box next to "Test.R". This will make the yellow question marks turn into a single green A status. 
+
+<img src="/Users/Cici/EEMB595TE/1_Intro_to_Github/Git9.png" style="position:center"/>
+
+Now, click on "Commit".
+
+<img src="/Users/Cici/EEMB595TE/1_Intro_to_Github/Git10.png" style="position:center"/>
+
+You have now committed the current version of this file to your repository on your computer/server. 
+
+**(4) Pushing the conents of this commit to Github**
+
+Go to your Github account to create a New Repository.
+Go to your profile.
+
+<img src="/Users/Cici/EEMB595TE/1_Intro_to_Github/Git11.png" style="position:center"/>
+
+Then, hit *New* in the upper right.
+
+Then, name this repository *Test*
+
+<img src="/Users/Cici/EEMB595TE/1_Intro_to_Github/Git12.png" style="position:center"/>
+
+Hit *Create repository*
+
+<img src="/Users/Cici/EEMB595TE/1_Intro_to_Github/Git16.jpeg" style="position:center"/>
+
+Copy and past the Repository URL and the SSH
+
+Back in RStudio, click on *Tools* -> *Shell*
+
+```{r}
+# $ git remote add origin <Repository URL>
+
+# $ git config remote.origin.url <Repository SSH>
+
+# $ git push -u origin master
+
+# $ git pull origin master
+
+```
+
+*Beware, this is the tricky part to get RStudio to allow you connect to Github. You may need to do some google searching on how to get it to work*
+
+If you are getting errors with the commands above, try the following:
+
+```{r}
+# $ git remote add <Repository URL>
+
+# $ git config remote.origin.url <Repository SSH> 
+
+# $ git push -u origin master --force
+
+# $ git pull origin master
+
+```
+
+<br>
+
+## Github Desktop
+
+New Github Desktop:
+https://desktop.github.com/
+
+But I could not get the new version to work on my Mac:
+
+<img src="/Users/Cici/EEMB595TE/1_Intro_to_Github/Git14.png" style="position:center"/>
+
+Old Mac version:
+https://central.github.com/mac/latest
+
+<img src="/Users/Cici/EEMB595TE/1_Intro_to_Github/Git15.png" style="position:center"/>
+
+The idea here is to link a local folder as a Github repository. Whenever you make changes to that repository, they appear in Github Desktop. Then you need to commit the change and sync.
+
+To do this, Open the program and link your github account to it. I will be using the older version here. 
+
+This is what a clean interface looks like:
+
+<img src="/Users/Cici/EEMB595TE/1_Intro_to_Github/GitD1.png" style="position:center"/>
+
+To clone a repository from your Guthub, go to the upper had + sign and chose the repository:
+
+<img src="/Users/Cici/EEMB595TE/1_Intro_to_Github/GitD2.png" style="position:center"/>
+
+Then it will clone the repository to your local machine. It will have a history of all the changes you had to the documents:
+
+<img src="/Users/Cici/EEMB595TE/1_Intro_to_Github/GitD3.png" style="position:center"/>
+
+Lastly, go about making changes to your documents as normal, then go to the github desktop, create a commit, *hit commit*, and then *sync*. This will update the latest version on your Github.
+
+<img src="/Users/Cici/EEMB595TE/1_Intro_to_Github/GitD4.jpeg" style="position:center"/>
+
+## For more information
+Check out Hadley Wickhams website on Git, Github, & R
+
+    http://r-pkgs.had.co.nz/git.html
+
+## Thank you for your attention!!!
+
+<img src="/Users/Cici/EEMB595TE/1_Intro_to_Github/Thats_all_folks.jpg" style="position:center"/>
+
+

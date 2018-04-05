@@ -1,0 +1,85 @@
+---
+title: "Theoretical Ecology 
+
+\n(EEMB 595TE) Spring 2018 Syllabus"
+output:
+  html_document:
+    highlight: zenburn
+    theme: paper
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+---
+
+<img src="/Users/Cici/EEMB595TE/Syllabus/UCSB_logo.png" style="position:absolute;top:9px;right:115px;width:240px;height=240px" />
+
+### Course information:
+
+Course title: Theoretical Ecology
+
+Time: Thursdays from 11am-12pm
+
+Location: Noble Hall 2221
+
+### Course instructors and contact information:
+
+(1) Dr. Cherie Briggs
+
+Email: cherie.briggs@lifesci.ucsb.edu
+
+(2) Dr. Stephen Proulx
+
+Email: stephen.proulx@gmail.com
+
+(3) Dr. Grace DiRenzo
+
+Email: grace.direnzo@gmail.com
+
+*Office hours by appointment only*
+
+### Course objective
+
+- To learn how to perform Bayesian analyses
+
+- To learn the distinction between Bayesian and Frequentist methods
+
+- To understand current concepts, theories, and questions; translate that to process and observation models; and provide new insight qualified by uncertainity
+
+- To provide *principles* based understanfing, enhance intellectual satisfaction, foster collaborations, build a foundation for self-teaching
+
+### Course book
+
+"Bayesian Population Analysis using WinBUGS" by Marc Kéry and Michael Schaub
+
+*Ask Grace, Cherie, or Stephen for a PDF copy*
+
+### Course work
+
+This course will be broken up into two phases:
+
+(1) First, we will go over the basics in performing Bayesian analyses and run through code together
+
+(2) Then, as either individuals or group, students will present on:
+
+  - A topic we did not cover in class
+  - Analyze their data in a way we learned
+  - Analyze their data in a way we did not learn in class
+
+For a single person presenting, the time allotted is: 10 minutes
+
+For each additional person in the group add 10 minutes.
+
+### Course schedule
+
+```{r echo = FALSE}
+library(knitr)
+library(kableExtra)
+cal <- read.csv("/Users/Cici/GitHub/Theoretical_ecology/Calendar.csv")
+
+cal %>%
+  kable("html") %>%
+  kable_styling()
+
+```
+
