@@ -257,11 +257,11 @@ See Greenland et al. 2016 for common misconceptions of p-values.
 
 The *p*-value is typically degraded into a dichotomy:
 
-    - “statistically significant” if *p* falls on or below a cut-off (usually 0.05) 
+    - statistically significant if *p* falls on or below a cut-off (usually 0.05) 
 
-    - “nonsignificant” otherwise. 
+    - nonsignificant otherwise. 
 
-The terms “significance level” and “alpha level” (α) are often used to refer to the cut-off; however, the term “significance level” invites confusion of the cut-off with the P value itself.
+The terms “significance level” and “alpha level” ($\alpha$) are often used to refer to the cut-off; however, the term “significance level” invites confusion of the cut-off with the P value itself.
 
 Difference between the cut-off ($\alpha$) and the p-value:
 
