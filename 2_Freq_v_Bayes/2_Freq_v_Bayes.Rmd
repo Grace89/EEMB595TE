@@ -1,0 +1,312 @@
+---
+title: "Theoretical Ecology 
+
+\n(EEMB 595TE) Spring 2018
+
+\n Class 2: Introduction to methods of parameter estimation
+
+\n Differences between Frequentist and Bayesian statistics"
+
+output:
+  html_document:
+    theme: paper
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+---
+
+<img src="/Users/Cici/EEMB595TE/1_Intro_to_Github/UCSB_logo.png" style="position:absolute;top:9px;right:115px;width:150px;height=240px" />
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<br>
+
+## Update the course material for this week
+
+To update the course repository on your computer, you will ``pull`` a current copy of the repository. To do this: 
+
+1.  Open your terminal/bash.
+
+2.  Navigate to the course repository. If this is in your root directory then type:
+
+    ```bash
+    cd
+    cd EEMB595TE
+    ```
+    
+3.  Paste the following into the terminal/bash:
+
+    ```bash
+    git pull
+    ```
+
+<br>
+
+## Last weeks objectives
+
+(1) To learn how to obtain class materials using the terminal (Mac)/command prompt (Windows)
+
+(2) To learn what is Git, Github, GitDesktop, and Rstudio
+
+<br>
+
+## Reminder on student presentations
+
+As either individuals or group, students will present on:
+
+  - A topic we did not cover in class
+
+  - Analyze their data in a way we learned
+
+  - Analyze their data in a way we did not learn in class
+
+For a single person presenting, the time allotted is: 10 minutes
+
+For each additional person in the group add 10 minutes.
+
+Feel free to ask me about a topic you would like to cover or how to start working with your data.
+
+<br>
+
+## This weeks objectives
+
+(1) To understand the differences between Frequentist and Bayesian statistics
+
+(2) To understand parameter estimation methods for Frequentist and Bayesian methods
+
+<br>
+
+## Exercise
+
+Write out the definition of a frequentist, 95% confidence interval on a parameter of interest, $\theta$. 
+
+```{r include = TRUE, echo = TRUE}
+
+# Write answer on a piece of paper and give to Grace 
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+```
+
+*Answer*: In an infinite number of independent experiments, the proportion of times that the true parameter value falls within the interval.
+
+<br>
+
+## Notation
+
+- *y* is data
+
+- $\theta$ is a parameter or other known quantity of interest
+
+- [*y*|$\theta$] is the probability distribution of *y* conditional on $\theta$
+
+- [$\theta$|*y*] is the probability distribution of $\theta$ conditional on *y*
+
+- P(*y*|$\theta$) = p(*y*|$\theta$) = [*y*|$\theta$] = *f*(*y*|$\theta$); different notation that all mean the same thing
+
+<br>
+
+## What sets Bayesian statistics apart?
+
+- We divide the world into things that are observed (data = *y*) and things that are unobserved (parameters = $\theta$)
+
+- The unobserved quantities (parameters = $\theta$) are random variables. The data are random variables before they are observed and fixed after they have been observed
+
+- We seek to understand the probability distribition of $\theta$ using fixed observations, i.e., [$\theta$|*y*] (also known as the posteriod distribution)
+
+- Those distributions quantify our uncertainity about the paramters (i.e., $\theta$)
+
+- Their probability is the individual belief that an even happens or that a parameter takes a specific value.
+
+    - No hypothetical replicates 
+    
+    - Probability is the sole measure of uncertainty about all unknown quantities
+    
+    - Apply the mathematical laws of probability for parameter estimation and all their statistical inference
+    
+- To determine significance of parameters:
+    
+    - For slopes: Does it overlap with zero?
+    
+    - For categorical variables: What is the proportion of time that the posterior distributions overlap? This value is interpreted as a probability.
+    
+<br>
+
+## What sets Frequntist statistsics apart?
+
+- We make probability statements about the data, given fixed parameter values, but never about the parameters themselves
+    
+    - i.e., we do not assign a probability to a parameter, we ask about the probability of observing certain kinds of data given certain values of the unknown parameter
+  
+- Probability statements refer to hypothetical replicate data that would be expected if certain parameter values hold
+  
+    - They are never directly about parameters
+  
+- In this world, we can never say, "I am 95% certain that this population is declining."
+
+- Parameters are fixed and unknown quantities
+
+    - Uncertainty in parameter estimates is expressed in terms of the variability of hypothetical replicates
+    
+- Therefore- frequentists make probability statements about the data, given fixed parameter values, but never about the parameters themselves
+
+- Do not assign a probability to a parameter; they ask about the probability of observing certain kinds of data given certain values for unknown parameters. 
+
+- Typically use *p*-values to determine significance of parameters (both slopes and categorical variables).
+
+<br>
+    
+## How do Frequentist and Bayesian statisticians go about parameter estimation and inference?
+
+- Both start with the sampling distribution of the data
+    
+     - i.e., the statistical description of the mechanism that could have produced the observed data = the statistical model
+  
+     - e.g., p(*y*|$\theta$) = the probability of y conditional on $\theta$
+  
+- Frequentist: the likelihood function plays a central role for inference about parameters
+
+    - The likelihood function is the same as the sampling distribution but "read in reverse"
+
+    - Likelihood function = *L*($\theta$|*y*) = the likelihood of parameter $\theta$ given the data *y*
+        
+        - It is proportional to the sampling distribution
+  
+        - *L*($\theta$|*y*) $\propto$ p(*y*|$\theta$)
+
+        - The likelihood is not a probability because 
+
+             - It does not integrate to 1
+
+             - The maximum function value may be greater than 1
+
+     - Estimate a single point of the likelihood function and call the value which maximizes the function the *maximum likelihood estimate* (MLE)
+  
+     - MLE represents a parameter value(s) which maximize the probability of getting the data actually observed
+      
+    - MLE is unbiased when sample size goes to infinity
+    
+- Bayesian: uses Bayes rule which was derived using probability rules
+
+    - Bayes rule:
+        p($\theta$|*y*) $\propto$ p(*y*|$\theta$) x p($\theta$)
+
+    - Reads as:
+        Posterior distribution $\propto$ Likelihood x Prior
+        
+    - Therefore, the Bayesian framework is Likelihood based
+
+<br>
+
+## How are Frequentist to Bayesian statistics really different?
+
+- The analysis of the model
+
+- Bayesian inference contains information about prior distributions
+
+- They differ in the way they treat the uncertainty about what is unknown in a model, especially the uncertainity about a parameter ($\theta$)
+
+<br>
+
+## Exercise
+
+Write out the definition of a frequentist *p*-value. 
+
+```{r include = TRUE, echo = TRUE}
+
+# Write answer on a piece of paper and give to Grace 
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+```
+
+*Answer*: A statistical summary of the compatibility between the observed data and what we would predict or expect to see if we knew the entire statistical model (all the assumptions used to compute the *p*-value) were correct.
+
+See Greenland et al. 2016 for common misconceptions of p-values.
+
+The *p*-value is typically degraded into a dichotomy:
+
+    - “statistically significant” if *p* falls on or below a cut-off (usually 0.05) 
+
+    - “nonsignificant” otherwise. 
+
+The terms “significance level” and “alpha level” (α) are often used to refer to the cut-off; however, the term “significance level” invites confusion of the cut-off with the P value itself.
+
+Difference between the cut-off ($\alpha$) and the p-value:
+
+    - The cut-off value $\alpha$ is supposed to be fixed in advance and is thus part of the study design
+    
+    - In contrast, the *p*-value is a number computed from the data and thus an analysis result, unknown until it is computed
+
+The p-value describes a property of data when compared to a specific null hypothesis. The p-values do not give the probability that the data were produced by random chance alone.
+
+<br>
+
+## What tools do you need to understand Bayesian statistics?
+
+- Understand rules of probability
+    - Conditioning and independence
+    - Law of total probability
+    - Factoring joint probabilities
+
+- Distribution theory
+
+- Markov chain Monte Carlo
+
+<br>
+
+## Programs that do Bayesian analyses
+
+List of common interfaces, names of programs, type of inference, and data needed (i.e., marked vs. unmarked; count vs. detection/non-detection data) to run unmarked data models. This is not an exhaustive list; for example, models can be compiled in C++ or Matlab.
+
+|Inferface/program    | Type of inference | Data input               |Type of data input                   |
+|---------------------|-------------------|--------------------------|-------------------------------------|
+|R; WinBUGS           |Bayesian           |Marked or unmarked        |Count or detection/non-detection     |
+|R; OpenBUGS          |Bayesian           |Marked or unmarked        |Count or detection/non-detection     |
+|R; JAGS              |Bayesian           |Marked or unmarked        |Count or detection/non-detection     |
+|R; NIMBLE            |Bayesian           |Marked or unmarked        |Count or detection/non-detection     |
+|R; STAN^+^           |Bayesian           |Marked or unmarked        |Count or detection/non-detection     |
+|R; package *unmarked*|Frequentist        |unmarked data only        |Count or detection/non-detection     |
+|R; package *RMark*   |Frequentist        |unmarked data only        |Count or detection/non-detection     |
+|PRESENCE             |Frequentist        |unmarked data only        |Detection/non-detection only         |
+|MARK                 |Frequentist        |Mark-recapture data only  |Detection/non-detection only         |
+| | | |
+
+<br>
+
+## Definitions:
+
+*Probability distribution*: a mathematical function that provides the probabilities of occurrence of different possible outcomes in an experiment.
+
+*Random variable* (Bayesian):  is a quantity that can take on values due to chance- it does not have a single value but instead can take on a range of values. 
