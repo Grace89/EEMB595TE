@@ -158,6 +158,8 @@ Write out the definition of a frequentist, 95% confidence interval on a paramete
 - Probability statements refer to hypothetical replicate data that would be expected if certain parameter values hold
   
     - They are never directly about parameters
+    
+    - Probability is defined as the long-run frequency of events in such hypothetical replicates; therefore, the name arises as "Frequentist" statistics
   
 - In this world, we can never say, "I am 95% certain that this population is declining."
 
@@ -311,3 +313,7 @@ List of common interfaces, names of programs, type of inference, and data needed
 *Probability distribution*: a mathematical function that provides the probabilities of occurrence of different possible outcomes in an experiment.
 
 *Random variable* (Bayesian):  is a quantity that can take on values due to chance- it does not have a single value but instead can take on a range of values. 
+
+*Probability* (Frequentist): is defined as the long-run frequency of events in such hypothetical replicates
+
+*Probability* (Bayesian): the chances of a particular outcome occurring
