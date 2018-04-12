@@ -149,7 +149,7 @@ Write out the definition of a frequentist, 95% confidence interval on a paramete
     
 <br>
 
-## What sets Frequntist statistsics apart?
+## What sets Frequentist statistics apart?
 
 - We make probability statements about the data, given fixed parameter values, but never about the parameters themselves
     
@@ -272,6 +272,7 @@ Difference between the cut-off ($\alpha$) and the p-value:
 The p-value describes a property of data when compared to a specific null hypothesis. The p-values do not give the probability that the data were produced by random chance alone.
 
 <br>
+
 
 ## What tools do you need to understand Bayesian statistics?
 
