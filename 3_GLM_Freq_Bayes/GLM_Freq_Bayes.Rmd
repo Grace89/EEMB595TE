@@ -1,0 +1,790 @@
+---
+title: "Theoretical Ecology 
+
+\n(EEMB 595TE) Spring 2018
+
+\n Class 3: Introduction to generalized linear models"
+
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+---
+
+<img src="/Users/Cici/EEMB595TE/1_Intro_to_Github/UCSB_logo.png" style="position:absolute;top:9px;right:115px;width:150px;height=240px" />
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<br>
+
+## Update the course material for this week
+
+To update the course repository on your computer, you will ``pull`` a current copy of the repository. To do this: 
+
+1.  Open your terminal/bash.
+
+2.  Navigate to the course repository. If this is in your root directory then type:
+
+    ```bash
+    cd
+    cd EEMB595TE
+    ```
+    
+3.  Paste the following into the terminal/bash:
+
+    ```bash
+    git pull
+    ```
+
+<br>
+
+## Last weeks objectives
+
+(1) To understand the differences between Frequentist and Bayesian statistics
+
+(2) To understand parameter estimation methods for Frequentist and Bayesian methods
+
+<br>
+
+## This weeks objectives
+
+(1) To understand the purpose of statistical models
+
+(2) To have a solid practical understanding of a generalized linear model
+      
+      - What is a design matrix?
+      
+      - What is a link function?
+      
+      - How do you chose a statistical distribution for an observed response?
+
+Q: What is our goal with a model?
+
+<br>
+
+## 3.2. Statistical models
+
+Response = Signal + Noise
+
+Difference between a statistical and mathematical model
+
+  - The statistical model contains a description of the random variability in an observed response (i.e., the noise)
+
+# 3.2.1. The noise component
+
+To describe the noise component- we use statistical distributions 
+
+  - Refer to handout from last week for a list of distributions
+      
+Example:
+
+```{r}
+plot(density(rnorm(n = 10000, mean = 2, sd = 1/(0.001^2))))
+hist(rnorm(n = 10000, mean = 2, sd = 1/(0.001^2)), nclass = 100, col = "gray")
+```
+
+Only has 1 noise component
+  
+  - Generalized linear model
+
+Greater than 1 noise component
+
+  - Hierarchical models
+  
+  - State-space models
+  
+  - Mixed-effects models
+  
+  - And others
+
+# 3.2.2. The signal component
+
+The predictable parts of a response:
+
+The linear model is one way to describe how we imagine that explanatory variables affect the response variable
+
+  - There are nonlinear models
+  
+Linear model:
+
+  - Linear in the parameters
+  
+  - Does not need to represent a straight line when plotted
+  
+  - The parameters affect the mean response in an additive way
+  
+    - Linear: *y* = $\alpha$*x*~1~ + $\beta$*x*~2~
+    
+    - Not linear: *y* = (*x*~1~^$\alpha$^)/($\beta$ + *x*~2~)
+
+    - *y* = response variable
+    
+    - *x*~1~ and *x*~2~ = explanatory variables
+
+To understand what is going on with the models we use, we:
+
+  - Need to be able to code them
+  
+  - Write them out mathematically
+  
+Therefore, we use vectors (i.e., a string of numbers) and matrices (i.e., a 2D object with rows and columns)
+
+  - Learning about the design matrix
+
+ANCOVA example: 
+
+  - *y* = reponse variable
+  
+  - *A* = a factor with 3 levels (i.e., a categorical covariate)
+  
+  - *X* = a continuous covariate
+
+```{r}
+# Define and plot data
+y <- c(25, 14, 68, 79, 64, 139, 49, 119, 111)
+
+A <- factor(c(1, 1, 1, 2, 2, 2, 3, 3, 3))
+
+X <- c(1, 14, 22, 2, 9, 20, 2, 13, 22)
+
+library(ggplot2)
+ggplot() + geom_point(aes(y = y, x = X, col = A))
+```
+
+We fit an ANCOVA with parallel slopes by using the following command:
+
+```{r}
+summary(fm <- lm(y ~ A-1 + X))
+```
+
+What does the output mean when using the structure *y ~ A-1 + X*?
+
+Answer: *y*~i~ = $\alpha$~j(i)~ + $\beta$*X*~i~ + $\epsilon$~i~
+
+$\epsilon$~i~ $\sim$ Normal(0, $\sigma$^2^)
+
+  - *y*~i~ = the response of unit *i*
+  
+  - *X*~i~ = the value of the continuous explanatory variable *X* for unit *i*
+  
+  - *A* = group membership of each unit *i*
+    
+    - The index *j* is 1, 2, or 3
+    
+    - *j* = *A*~i~
+    
+      - For example: when *A*~i~ = 1, then *j* = 1  and $\alpha$~1~
+      
+How many parameters are in the model?
+
+Answer: 2. $\alpha$ is a vector and $\beta$ is a scalar.
+
+What is the response part of the model?
+
+Answer: $\alpha$~j(i)~ + $\beta$*X*~i~
+
+What is the noise part of the model?
+
+Answer: + $\epsilon$~i~ where 
+
+$\epsilon$~i~ $\sim$ Normal(0, $\sigma$^2^)
+
+Exercise: What are 2 other ways to write the model?
+```{r}
+#
+#
+#
+#
+#
+#
+#
+#
+```
+
+Answer:
+
+(1) *y*~i~ $\sim$ Normal($\alpha$~j(i)~ + $\beta$*X*~i~, $\sigma$^2^)
+
+  - The residuals, $\eta$~i~, are implicit
+
+(2) *y*~i~ $\sim$ Normal($\mu$~i~, $\sigma$^2^)
+$\mu$~i~ = $\alpha$~j(i)~ + $\beta$*X*~i~
+
+  - $\mu$ = the expected resoponse of unit *i* in the absence of any noise
+
+How do we interpret the parameter output of our model?
+```{r}
+# Effects or treatment contrast parameterization
+summary(fm <- lm(y ~ A + X))
+  # Specify the model in terms of a baseline response, which is the first level of factor A here, plus the effects of the other levels relative to the first level and effects of each unit change in the covariate X
+  # Columns A2 and A3 quantify the difference in the mean response in levels 2 and 3 relative to that of level 1 for a given value of X
+  # X column = the common slope of the regression of y on X, regardless of which group a unit belongs to
+model.matrix(~ A + X)
+
+  # We use the matrix output incombination with the parameter vector to provide predictions of mu
+
+predictions1 <- model.matrix(~ A + X) %*% fm$coefficients
+
+library(ggplot2)
+
+ggplot() + geom_point(aes(y = y, x = X, col = A))+
+  geom_line(aes(y = predictions1, x = X, col = A))
+
+# Means parameterization
+summary(fm <- lm(y ~ A-1 + X))
+  # The first three columns directly represent the mean resoinse for each level of factor A at X = 0 
+model.matrix(~ A-1 + X)
+
+predictions2 <- model.matrix(~ A-1 + X) %*% fm$coefficients
+
+ggplot() + geom_point(aes(y = y, x = X, col = A))+
+  geom_line(aes(y = predictions2, x = X, col = A))
+```
+
+## 3.3. Poisson GLM in R and JAGS for modeling times series of counts
+
+Poisson distribution = for positive integers when the data are collected independently and randomly
+  
+  - Describes the residual variation (noise) after the systematic signal
+  
+(1) Randome part of the response (statistical distribution)
+
+*C*~i~ $\sim$ Poisson($\lambda$~i~)
+
+(2) Link of random systematic part (log link function)
+
+log($\lambda$~i~) = $\eta$~i~
+
+(3) Systematic part of the response (linear predictor)
+
+$\eta$~i~ = $\alpha$ + $\beta$ *X*~i~
+
+Definitions of parameters:
+
+$\lambda$~i~ = the expected count (the mean response) in year *i* on the log scale
+
+$\eta$~i~ = the expected count in year *i* on the link scale
+
+*X*~i~ = the value of the covariate *X* in year *i*
+
+$\alpha$ and $\beta$ = two parameters of the log-linear regression of the counts
+
+# 3.3.1. Generation and analysis of simulated data
+
+In this example, the linear predictor will be a cubic polynomial function of time:
+
+$\eta$~i~ = $\alpha$ + $\beta$~1~ *X*~i~ + $\beta$~2~ *X*~i~^2^ + $\beta$~3~ *X*~i~^3^
+
+```{r}
+data.fn <- function(n = 40, alpha = 3.5576, beta1 = -0.0912, beta2 = 0.0091, beta3 = -0.00014){
+# n: Number of years
+# alpha, beta1, beta2, beta3: coefficients of a 
+#    cubic polynomial of count on year
+
+# Generate values of time covariate
+year <- 1:n
+
+# Signal: Build up systematic part of the GLM
+log.expected.count <- alpha + beta1 * year + beta2 * year^2 + beta3 * year^3
+expected.count <- exp(log.expected.count)
+
+# Noise: generate random part of the GLM: Poisson noise around expected counts
+C <- rpois(n = n, lambda = expected.count)
+
+# Plot simulated data
+plot(year, C, type = "b", lwd = 2, col = "black", main = "", las = 1, ylab = "Population size", xlab = "Year", cex.lab = 1.2, cex.axis = 1.2)
+lines(year, expected.count, type = "l", lwd = 3, col = "red")
+
+return(list(n = n, alpha = alpha, beta1 = beta1, beta2 = beta2, beta3 = beta3, year = year, expected.count = expected.count, C = C))
+}
+```
+
+Simulate the data:
+```{r}
+data <- data.fn()
+```
+
+Analyze the data using frequentist method (2-3 lines of code):
+
+```{r}
+fm <- glm(C ~ year + I(year^2) + I(year^3), family = poisson, data = data)
+summary(fm)
+```
+
+Analyze the data using Bayesian method (> 20 lines of code):
+
+```{r}
+# Specify model in JAGS language
+{
+sink("GLM_Poisson.jags")
+cat("
+model {
+
+# Priors
+alpha ~ dunif(-20, 20)
+beta1 ~ dunif(-10, 10)
+beta2 ~ dunif(-10, 10)
+beta3 ~ dunif(-10, 10)
+
+# Likelihood: Note key components of a GLM on one line each
+for (i in 1:n){
+
+   C[i] ~ dpois(lambda[i])          # 1. Distribution for random part
+
+   log(lambda[i]) <- log.lambda[i]  # 2. Link function
+
+   log.lambda[i] <- alpha + beta1 * year[i] + beta2 * pow(year[i],2) + beta3 * pow(year[i],3)                      # 3. Linear predictor
+
+   } #i
+}
+",fill = TRUE)
+sink()
+}
+```
+
+Create the objects that will go into the analysis:
+  
+  - Bundle the data
+  
+  - Initial values
+  
+  - Parameters to monitor
+  
+  - MCMC settings
+
+```{r warnings = FALSE, messages = FALSE}
+# Bundle data
+win.data <- list(C = data$C, n = length(data$C), year = data$year)
+
+# We bundle the data into a list:
+win.data
+
+# Initial values
+inits <- function() list(alpha = runif(1, -3, 3), 
+                         beta1 = runif(1, -3, 3))
+
+# Parameters monitored
+# Save
+params <- c("alpha", "beta1", "beta2", "beta3", "lambda")
+
+# MCMC settings
+ni <- 2000   # Number of iterations
+nt <- 2      # Number to thin by # Useful to save disk space
+nb <- 1000   # Burinin: Number of iterations to discard at the beginning
+nc <- 3      # Number of chains
+```
+
+```{r warnings = FALSE, messages = FALSE}
+# Call JAGS from R
+library(jagsUI)
+
+out <- jags(data = win.data, inits = inits, parameters.to.save = params, model.file = "GLM_Poisson.jags", n.chains = nc, n.thin = nt, n.iter = ni, n.burnin = nb, parallel = TRUE)
+
+print(out, dig = 3)
+```
+
+The model did not converge (Rhat > 1.1). Why are continuing with the book if it can't find the solution to a simple model?
+
+(1) You can fit more complicated models with JAGS than in R
+
+(2) We conduct a Bayesian analysis rather than frequentist (revist last weeks lecture)
+
+(3) The model you fit is more transparent that the more in R
+
+Why didn't the model converge?
+
+- We need to make sure that covariate values produce neither too large negative or postive values
+
+- Note that year^3^ when year = 40 goes up to 64,000
+  
+  - Causes numerical overflow
+  
+  - Covariates in the 10s or 100s should not be a problem
+  
+To avoid this problem, we standardize our covariates by subtracting the mean and dividing by the standard deviation
+
+```{r warnings = FALSE, messages = FALSE}
+# Bundle data that is standardized
+mean.year <- mean(data$year)       # Mean of year covariate
+
+sd.year <- sd(data$year)           # SD of year covariate
+
+win.data <- list(C = data$C, n = length(data$C), year = (data$year - mean.year) / sd.year)
+
+# Look at the bundled data
+win.data
+
+# Call JAGS from R (BRT < 1 min)
+out <- jags(data = win.data, inits = inits, parameters.to.save = params, model.file = "GLM_Poisson.jags", n.chains = nc, n.thin = nt, n.iter = ni, n.burnin = nb, parallel = TRUE)
+
+print(out, dig = 3)
+```
+
+Visually inspect the convergence of the chains:
+
+  - The 3 chains should look like a caterpillar
+
+  - There should be no direction (positive or negative) of the chains
+  
+  - We are looking for good "chain mixing" = the chains are together and not seperate
+  
+```{r fig.width=9, fig.height=8, tidy=TRUE, echo=TRUE, include=TRUE, eval = TRUE}
+plot(out)
+```
+
+What does poor mixing look like?
+```{r fig.width=9, fig.height=8, tidy=TRUE, echo=TRUE, include=TRUE, eval = TRUE}
+# New MCMC settings with essentially no burnin
+ni <- 100
+nt <- 1
+nb <- 1
+nc <- 3
+
+# Call JAGS from R (BRT < 1 min)
+tmp <- jags(data = win.data, inits = inits, parameters.to.save = params, model.file = "GLM_Poisson.jags", n.chains = nc, n.thin = nt, n.iter = ni, n.burnin = nb, parallel = TRUE)
+
+plot(tmp)
+```
+
+Now we compare the output from the frequentist and the Bayesian models to the true values we used to simulate the data:
+
+```{r}
+plot(1:40, data$C, type = "b", lwd = 2, col = "black", main = "", las = 1, ylab = "Population size", xlab = "Year")
+
+R.predictions <- predict(glm(C ~ year + I(year^2) + I(year^3), family = poisson, data = data), type = "response")
+
+lines(1:40, R.predictions, type = "l", lwd = 3, col = "green")
+
+JAGS.predictions <- out$mean$lambda
+
+lines(1:40, JAGS.predictions, type = "l", lwd = 3, col = "blue", lty = 2)
+
+legend("topleft", c("Frequentist", "Bayesian"), fill = c("green", "blue"), bty = "n")
+
+# Look at the predicted values between the frequentist and Bayesian methods
+
+cbind(R.predictions, JAGS.predictions)
+```
+
+Key take away: There is a tradeoff between simplicity of fitting a model and model flexibility
+
+# 3.3.2. Analysis of real data set
+
+Repeat the analysis using real data
+
+By doing this analysis, we are assuming:
+
+  - Peregrine Falcon coverage has not changed
+  
+  - Detection probability of Falcons is constant over time
+  
+Look at chapters 12 and 13 for more details on how to deal with violations of these assumptions
+
+# Read data
+```{r}
+# Set the working directory
+setwd("~/EEMB595TE/Book_data/")
+
+# Read in the data
+peregrine <- read.table("falcons.txt", header = TRUE)
+
+# Look at what the dataset is comprised of
+str(peregrine)
+
+# Attach the dataset = allow each column to be its own object = writing the variable names when addressing them
+attach(peregrine)
+
+# Plot the data
+plot(Year, Pairs, type = "b", lwd = 2, main = "", las = 1, ylab = "Pair count", xlab = "Year", ylim = c(0, 200), pch = 16)
+```
+
+We standardize the covariates and bundle the data:
+
+```{r}
+# Bundle data
+mean.year <- mean(1:length(Year))        # Mean of year covariate
+sd.year <- sd(1:length(Year))            # SD of year covariate
+win.data <- list(C = Pairs, n = length(Pairs), year = (1: length(Year) - mean.year) / sd.year)
+
+# Initial values
+inits <- function() list(alpha = runif(1, -2, 2), beta1 = runif(1, -3, 3))
+
+# Parameters monitored
+params <- c("alpha", "beta1", "beta2", "beta3", "lambda")
+
+# MCMC settings
+ni <- 2500
+nt <- 2
+nb <- 500
+nc <- 3
+
+# Call JAGS from R (BRT < 1 min)
+out1 <- jags(data = win.data, inits = inits, parameters.to.save = params, model.file = "GLM_Poisson.jags", n.chains = nc, n.thin = nt, n.iter = ni, n.burnin = nb, parallel = TRUE)
+
+# Summarize posteriors
+print(out1, dig = 3) 
+```
+
+```{r}
+# Save the predicted values for each year
+JAGS.predictions <- out1$mean$lambda
+
+# Plot the data
+plot(Year, Pairs, type = "b", lwd = 2, main = "", las = 1, ylab = "Pair count", xlab = "Year", ylim = c(0, 200), pch = 16)
+
+# Add the predicted values
+lines(Year, JAGS.predictions, type = "l", lwd = 3, col = "blue", lty = 2)
+```
+
+## 3.4. Poisson GLM for modeling fecundity
+
+Now doing the same exercise, but instead of having the response variable be Number of Paris, it will be Fecundity.
+
+```{r}
+plot(Year, Eyasses, type = "b", lwd = 2, main = "", las = 1, ylab = "Nestling count", xlab = "Year", ylim = c(0, 260), pch = 16)
+```
+
+Bundle the data and run the same model:
+
+```{r}
+# Bundle data
+mean.year <- mean(1:length(Year))   # Mean of year covariate
+sd.year <- sd(1:length(Year))       # SD of year covariate
+win.data <- list(C = Eyasses, n = length(Eyasses), year = (1: length(Year) - mean.year) / sd.year)
+
+# Call JAGS from R (BRT < 1 min)
+out2 <- jags(data = win.data, inits = inits, parameters.to.save = params, model.file = "GLM_Poisson.jags", n.chains = nc, n.thin = nt, n.iter = ni, n.burnin = nb, parallel = TRUE)
+
+print(out2, dig = 3)
+```
+
+Check traceplots:
+
+```{r fig.width=9, fig.height=8, tidy=TRUE, echo=TRUE, include=TRUE, eval = TRUE}
+plot(out2)
+```
+
+Compare model output to observed data:
+
+```{r}
+# Plot the data
+plot(Year, Eyasses, type = "b", lwd = 2, main = "", las = 1, ylab = "Nestling count", xlab = "Year", ylim = c(0, 260), pch = 16)
+
+# Plot predictions
+JAGS.predictions <- out2$mean$lambda
+
+lines(Year, JAGS.predictions, type = "l", lwd = 3, col = "blue")
+```
+
+## 3.5. Binomial GLM for modeling bounded counts or proportions
+
+With the Poisson, 
+  
+  - We modeled unbounded positive count data
+  
+However, we can also deal with:
+
+  - bounded data
+  
+  - For example, when modeling survival events for an individual over time
+  
+    - the count can not exceed 1 (typically 0 = dead, 1 = alive)
+    
+    - standard model is the binomial distribution
+    
+      - When *N* independent individuals all have the same probability *p* of experencing sopme event (e.g., survivorship)
+      
+      - The number of counts *C* will follow a binomial distribution
+      
+      - A special case is when *N* = 1; then we use a bernoulli distribition
+      
+Example: We will model the number of sucessful breeding pairs (*C*~i~) among all monitored pairs (*N*~i~) in year *i* for a total of 40 years
+
+- Year will be treated as a continuous covariate and we will fit a quadratic polynomial. 
+
+The model:
+
+1. Random part of the response (statistical distribution):
+
+*C*~i~ $\sim$ Binomial(*N*~i~, *p*~i~)
+
+2. Link pf random and systematic part (logit link function):
+
+logit(*p*~i~) = log(*p*~i~ / (1-*p*~i~)) = $\eta$~i~
+
+3. Systematic part of the response (linear predictor $\eta$~i~):
+
+$\eta$~i~ = $\alpha$ + $\beta$~1~*X*~i~ + $\beta$~2~*X*~i~^2^
+
+Here:
+*p*~i~ = the expected proportion of successful pairs
+
+  - Success probability
+
+    - Two events: the focal interest term of success (1) and a failure (0)
+    
+$\eta$~i~ = the same proportion, *p*~i~, on the logit link scale
+
+*N*~i~ = sample size or number of trials. Typically observed or a fixed number.
+
+Logit link function:
+
+- Maps the probability scale (0 to 1) onto the entire real number line (i.e., from negative infinity to positive infinity)
+
+# 3.5.1. Generation and analysis of simulated data
+
+First, we simulate data:
+
+```{r}
+data.fn <- function(nyears = 40, alpha = 0, beta1 = -0.1, beta2 = -0.9){
+# nyears: Number of years
+# alpha, beta1, beta2: coefficients
+
+# Generate untransformed and transformed values of time covariate
+year <- 1:nyears
+YR <- (year-round(nyears/2)) / (nyears / 2)
+
+# Generate values of binomial totals (N)
+N <- round(runif(nyears, min = 20, max = 100))
+
+# Signal: build up systematic part of the GLM
+exp.p <- plogis(alpha + beta1 * YR + beta2 * (YR^2))
+
+# Noise: generate random part of the GLM: Binomial noise around expected counts (which is N)
+C <- rbinom(n = nyears, size = N, prob = exp.p)
+
+# Plot simulated data
+plot(year, C/N, type = "b", lwd = 2, col = "black", main = "", las = 1, ylab = "Proportion successful pairs", xlab = "Year", ylim = c(0, 1))
+points(year, exp.p, type = "l", lwd = 3, col = "red")
+
+return(list(nyears = nyears, alpha = alpha, beta1 = beta1, beta2 = beta2, year = year, YR = YR, exp.p = exp.p, C = C, N = N))
+}
+```
+
+Create the simulate data by running the code and saving it in an object:
+
+```{r}
+data <- data.fn(nyears = 40, alpha = 1, beta1 = -0.03, beta2 = -0.9)
+```
+
+Write the model in the JAGS language:
+
+```{r}
+# Specify model in JAGS language
+{
+sink("GLM_Binomial.jags")
+cat("
+model {
+
+# Priors
+# The two values for dnorm are mean and precision
+  # Where: standard deviation = 1 /(precision^2)
+
+alpha ~ dnorm(0, 0.001)
+beta1 ~ dnorm(0, 0.001)
+beta2 ~ dnorm(0, 0.001)
+
+# Likelihood
+for (i in 1:nyears){
+   C[i] ~ dbin(p[i], N[i])          # 1. Distribution for random part
+
+   logit(p[i]) <- alpha + beta1 * year[i] + beta2 * pow(year[i],2) # link function and linear predictor
+
+   }
+}
+",fill = TRUE)
+sink()
+}
+```
+
+Bundle the data and set MCMC settings:
+
+```{r}
+# Bundle data
+win.data <- list(C = data$C, N = data$N, nyears = length(data$C), year = data$YR)
+
+# Initial values
+inits <- function() list(alpha = runif(1, -1, 1), beta1 = runif(1, -1, 1), beta2 = runif(1, -1, 1))
+
+# Parameters monitored
+params <- c("alpha", "beta1", "beta2", "p")
+
+# MCMC settings
+ni <- 2500
+nt <- 2
+nb <- 500
+nc <- 3
+
+# Call JAGS from R (BRT < 1 min)
+out <- jags(data = win.data, inits = inits, parameters.to.save = params, model.file = "GLM_Binomial.jags", n.chains = nc, n.thin = nt, n.iter = ni, n.burnin = nb, parallel = TRUE)
+```
+
+Check for convergence:
+
+```{r fig.width=9, fig.height=8, tidy=TRUE, echo=TRUE, include=TRUE, eval = TRUE}
+print(out, dig = 3)
+
+plot(out)
+```
+
+
+```{r}
+# Plot simulated data
+plot(data$year, data$C/data$N, type = "b", lwd = 2, col = "black", main = "", las = 1, ylab = "Proportion successful pairs", xlab = "Year", ylim = c(0, 1))
+
+points(data$year, data$exp.p, type = "l", lwd = 3, col = "red")
+
+# Plot predictions
+JAGS.predictions <- out$mean$p
+
+lines(1:length(data$C), JAGS.predictions, type = "l", lwd = 3, col = "blue", lty = 2)
+
+legend("topleft", c("Truth", "Bayesian estimate"), fill = c("red", "blue"), bty = "n")
+```
+
+# 3.5.2. Analysis of real data set
+
+Read in the data. We do not need to define the model again.
+
+```{r}
+# Set the working directory
+setwd("~/EEMB595TE/Book_data/")
+
+# Read data and attach them
+peregrine <- read.table("falcons.txt", header = TRUE)
+
+attach(peregrine)
+```
+
+```{r}
+# Bundle data (note yet another standardization for year)
+win.data <- list(C = R.Pairs, N = Pairs, nyears = length(Pairs), year = (Year-1985)/ 20)
+
+# Initial values
+inits <- function() list(alpha = runif(1, -1, 1), beta1 = runif(1, -1, 1), beta2 = runif(1, -1, 1))
+
+# Parameters monitored
+params <- c("alpha", "beta1", "beta2", "p")
+
+# MCMC settings
+ni <- 2500
+nt <- 2
+nb <- 500
+nc <- 3
+
+# Call JAGS from R (BRT < 1 min)
+out3 <- jags(data = win.data, inits = inits, parameters.to.save = params, model.file = "GLM_Binomial.jags", n.chains = nc, n.thin = nt, n.iter = ni, n.burnin = nb, parallel = TRUE)
+```
+
+```{r}
+# Summarize posteriors and plot estimates
+print(out3, dig = 3)
+
+plot(Year, R.Pairs/Pairs, type = "b", lwd = 2, col = "black", main = "", las = 1, ylab = "Proportion successful pairs", xlab = "Year", ylim = c(0,1))
+
+lines(Year, out3$mean$p, type = "l", lwd = 3, col = "blue")
+```
