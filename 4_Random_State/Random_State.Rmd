@@ -1,0 +1,563 @@
+---
+title: "Theoretical Ecology 
+
+\n(EEMB 595TE) Spring 2018
+
+\n Class 4: Random effects & State-space models"
+
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+---
+
+<img src="/Users/Cici/EEMB595TE/1_Intro_to_Github/UCSB_logo.png" style="position:absolute;top:9px;right:115px;width:150px;height=240px" />
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<br>
+
+## Update the course material for this week
+
+**As you walk in today try Exercise1.R in the folder**
+
+To update the course repository on your computer, you will ``pull`` a current copy of the repository. To do this: 
+
+1.  Open your terminal/bash.
+
+2.  Navigate to the course repository. If this is in your root directory then type:
+
+    ```bash
+    cd
+    cd EEMB595TE
+    ```
+    
+3.  Paste the following into the terminal/bash:
+
+    ```bash
+    git pull
+    ```
+
+<br>
+
+## Last weeks objectives
+
+(1) To understand the purpose of statistical models
+
+(2) To have a solid practical understanding of a generalized linear model
+      
+      - What is a design matrix?
+      
+      - What is a link function?
+      
+      - How do you chose a statistical distribution for an observed response?
+
+<br>
+
+## This weeks objectives
+
+(1) To learn the general principles of what occurs mathematically when you indicate a random effect
+
+(2) To learn how to create a state-space model
+
+<br>
+
+### Course schedule
+
+```{r echo = FALSE}
+library(knitr)
+library(kableExtra)
+cal <- read.csv("/Users/Cici/EEMB595TE/4_Random_State/Calendar.csv")
+
+cal %>%
+  kable("html") %>%
+  kable_styling()
+
+```
+
+
+## Review expectations for presentations
+
+*Either:*
+
+- Pick a topic we did not cover in class and teach your peers how to use this method-
+
+- Analyze a dataset in a way we learned in class and present the results to your peers
+
+- Analyze a dataset in a way we did not learn in class and present the results to your peers
+
+*Expectations:*
+
+- For a single person presenting, the time allotted is: 10 minutes
+
+- For each additional person in the group add 10 minutes.
+
+- You can use a combination of powerpoint and R script or a Rmarkdown file
+    
+    - You MUST present code to the class
+
+- Your analysis/project does *NOT* have to deal with population ecology
+
+    - You can analyze data on fisheries, economic growth patterns, social networks, etc.
+
+    - The goal of the project is to help you become familiar with and impliment Bayesian statistics
+    
+    - We want to provide a safe space for you to present ideas, talk about your work, and recieve constructive feedback from your peers
+
+- All project materials are due at the beginning of class on May 24th, even if you don't present until June 7th
+
+*Question:* How many groups/people do we have presenting? 
+
+  - One person per group should raise their hand
+  
+  - I will email an excel sheet after class to have a written copy of the groups and tentative project titles
+
+## Reviewing the parts to a Bayesian model
+
+```{r}
+# 1. Simulate the code
+# Open the library
+library("jagsUI")
+
+# Simulate the data
+nSites <- 100
+
+# Parameters
+alpha <- -3
+beta <- 0.1
+
+# Covariate- Percent forest cover
+Forest_cover <- runif(nSites, min = 0, max = 100)
+
+Forest_cover <- Forest_cover[order(Forest_cover)]
+
+p <- plogis(alpha + beta * Forest_cover)
+
+z <- rbinom(nSites, 1, p = p)
+
+# Visulaize the data
+plot(Forest_cover, jitter(z, 0.1), ylab = "Amphibian presence/absence", xlab = "Forest Cover percent", las= 1, pch = 21, col = "black", bg = "dodgerblue")
+
+lines(Forest_cover, p, col = "red", lwd = 3)
+
+legend("bottomright", "Truth w/no noise", lty = 1, lwd = 3, col = "red", bty = "n")
+```
+
+```{r}
+# 2. Write the model in the JAGS language
+{
+sink("model.txt")
+cat("
+model{
+
+#--- Priors
+
+alpha ~ dnorm(0, 0.001)
+beta ~ dnorm(0, 0.001)
+
+# Ecological model
+
+for(i in 1:nSites){
+  z[i] ~ dbern(p[i])
+    logit(p[i]) = alpha + beta * Forest_cover[i]
+}
+
+}
+", fill = TRUE)
+sink()
+}
+```
+
+
+```{r}
+# 3. Bundle data, set initial values, indicate the parameters to monitor, set MCMC settings, and then run the model
+
+# Bundle the data
+jags.data <- list(nSites = nSites,
+                  z = z,
+                  Forest_cover = Forest_cover)
+
+# Initial values
+inits <- function(){list(alpha = runif(1, -4, -2),
+                         beta = runif(1, 0, 0.5))} 
+
+# Parameters to monitor
+params <- c("alpha", "beta")
+
+# Set MCMC settings
+ni <- 10000
+nb <- 1000
+nt <- 10
+nc <- 3
+
+# Run the model
+out <- jags(data = jags.data, inits = inits, parameters.to.save = params, model.file = "model.txt", n.chains = nc, n.thin = nt, n.iter = ni, n.burnin = nb, parallel = TRUE)
+```
+
+```{r}
+# 4. Compare model output to the truth
+data.frame(parameters = c("alpha", "beta"), truth = c(alpha, beta), model_output = c(out$mean$alpha, out$mean$beta))
+```
+
+## Random effects models
+
+- An important extension of the generalized linear model (GLM)
+
+- Known as a generalized linear mixed model (GLMM)
+
+- What are random effects?
+  
+  - The are two or more parameters or effects that "belong together" in some way
+  
+      - Simply implying a grouping effect for a set of parameters
+      
+      - We can set intercepts or slopes are random effects (suggesting that the collection of intercepts or slopes belong to a common distributon)
+  
+  - A common stochasistic process has generated the effects 
+  
+      - For example, time, space, species identity, etc.
+      
+  - We link groups in random effects usng a distribution- which itself has is goverend by parameters (known as hyperpriors)
+  
+  - We are free to chose an effect as random or fixed
+  
+  - A GLMM is a hierarchical model wuth one level
+  
+  - Random effects can be continous or discrete variables
+
+When to use a random effect: Ask yourself the question - "Are my groups completely independent or can we regard them as being part of a large population?"
+
+Fixed effects are completely independent
+
+Random effects are not independent
+    
+    - Regard them as a samples froma larger number of effects, and we want to learn something about the population effect
+    
+- Pros to using random effects (pg. 78-83):
+
+  - Scope of inference- extends beyong the particular levels of a factor in the study
+  
+  - Assessment of variability- we can assess the level of variability at the population level (using the standard deviation hyperprior) or we can assess the level of variation among the observed levels in the study.
+  
+  - Partitioning of variability- code for unstructured variability among the units in a group- used to quantify the variability in some process (e.g., survival over time)
+  
+  - Modeling of Correlations among parameters: We can assess the level of correlation between random effects. For example, model the correlation between intercept and slope or between pairs of annual values of survial and fecundity
+  
+  - Avoiding Pseudoreplication- accounts for inherent structure in the data
+  
+And many more listed
+
+- Cons to using random effects:
+
+  - Need at least 3 factors to categorize a variable as random
+  
+  - Computationally expensive- need to run longer chains (i.e., more iterations), model may be more difficult to converege
+  
+  - Not explained well sometimes in statistics class- challenging for many people 
+  
+      - But random effects become more transparent when you are (forced) to write out the model
+      
+## A simple random effects model
+
+We gave 3 snake populations and we have the length and mass measurements for them. 
+
+In this example:
+    
+    - Our response variable (y) = mass
+    
+    - Our explanatory variable (x) = length
+    
+    - Our random effect is population- because we are taking repeated measurements from the same population
+    
+### 1. Simulate the data
+
+```{r}
+
+# Define categorical variable = Population
+Population <- as.factor(rep(c(1, 2, 3), each = 30))
+
+# Define categorical variable = x
+length <- runif(90, 1, 20)
+
+# Define response variable = y
+mu <- 30
+sd <- 10
+alpha <- rnorm(3, mean = mu, sd = sd)
+beta <- 2
+sigma <- 1
+
+# Visualize the distribituon that alpha is coming from
+
+plot(density(alpha), main = "Distrubtion for intercepts (alpha)")
+abline(v = 30, col = "red", lwd = 3)
+
+## Simulate the data
+
+mass <- numeric(length(Population))
+
+for(i in 1:length(Population)){
+  truth <- alpha[as.numeric(Population[i])] + beta * length[i] 
+  mass[i] <- rnorm(1, mean = truth, sd = sigma)
+}
+
+
+# Plot the data
+
+library(ggplot2)
+
+ggplot() + geom_point(aes(y = mass, x = length, col = Population), size = 2)+
+  scale_color_manual(values = c("black", "dodgerblue", "goldenrod"))+
+  ylab("Mass (g)")+
+  xlab("Length (mm)")+
+  theme_bw()+
+    theme(axis.text.x = element_text(size = 17, color = "black"), 
+        axis.text.y = element_text(size = 17, color = "black"), 
+        axis.title.y = element_text(size = 17, color = "black"), 
+        axis.title.x =element_text(size = 17, color = "black"),
+        legend.title =element_text(size = 17, color = "black"),
+        legend.text =element_text(size = 17, color = "black"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank()) 
+```
+
+### 2. Define the model in the JAGS language
+
+```{r}
+{
+sink("Random_effects.txt")
+cat("
+model {
+
+# Priors
+# Fixed effects
+beta ~ dunif(0, 5)
+
+# Random intercept- Retrieve a different intercept value for each population (1, 2, and 3)
+for(i in 1:3){
+  alpha[i] ~ dnorm(mu, tau1)
+}
+
+# Hyper-priors
+# Mean estimate of normal distributon for population
+mu ~ dunif(0, 50)
+
+tau1 <- 1/ (sd * sd)
+sd ~ dunif(0, 50)
+
+tau2 <- 1/ (sigma * sigma)
+sigma ~ dunif(0, 10)
+
+# Likelihood: Note key components of a GLM on one line each
+for (i in 1:n){
+
+   mass[i] ~ dnorm(mu2[i], tau2)        
+      # 1. Distribution for random part
+
+   mu2[i] <- alpha[Population[i]] + beta * length[i]     
+          # 2. Link function & linear predictor
+
+   } #i
+}
+",fill = TRUE)
+sink()
+}
+
+```
+
+
+```{r}
+# Bundle the data
+Population <- as.numeric(Population)
+jags.data <- list(mass = mass,
+                  length = length,
+                  Population = Population,
+                  n = length(mass)
+)
+
+# Initial values
+inits <- function() list(alpha = runif(3, 10, 30), 
+                         beta = runif(1, 0, 3),
+                         sd = runif(1, 0, 30),
+                         sigma = runif(1, 0, 5),
+                         mu = runif(1, 10, 30))
+
+# Parameters monitored
+# Save
+params <- c("alpha", "beta", "sigma", "sd")
+
+# MCMC settings
+ni <- 2000   # Number of iterations
+nt <- 2      # Number to thin by # Useful to save disk space
+nb <- 1000   # Burinin: Number of iterations to discard at the beginning
+nc <- 3      # Number of chains
+```
+
+```{r warnings = FALSE, messages = FALSE}
+# Call JAGS from R
+library(jagsUI)
+
+out <- jags(data = jags.data, inits = inits, parameters.to.save = params, model.file = "Random_effects.txt", n.chains = nc, n.thin = nt, n.iter = ni, n.burnin = nb, parallel = TRUE)
+
+print(out, dig = 3)
+
+```
+
+### Compare truth to model output
+```{r}
+data.frame(Parameters = c("alpha1", "alpha2", "alpha3", "beta", "sd", "sigma"),
+           truth = c(alpha, beta, sd, sigma),
+           model_output = c(out$mean$alpha, out$mean$beta, out$mean$sd, out$mean$sigma),
+           lower = c(out$q2.5$alpha, out$q2.5$beta, out$q2.5$sd, out$q2.5$sigma),
+           upper = c(out$q97.5$alpha, out$q97.5$beta, out$q97.5$sd, out$q97.5$sigma))
+
+```
+
+
+## State-space models
+
+Definition: A hierarichal model that decomposes an observed time series of counts or other observed responses into a process variation and an observation error component.
+
+Observation are imperfect
+
+    - Typically we have data with some unknown observation error
+
+Example:
+
+The change in population size over time is a Markovian process because population size at time *t+1* only depends on population size at time *t*.
+
+Among the simplest model for population dynamics is an exponential model:
+
+*N*~*t+*~ = *N*~*t* $\lambda$~*t*~
+
+$\lambda$~*t*~ = the population growth rate
+
+*t* = the time 
+
+*N* = population abundance
+
+State-space models allow you to deal with observation error as well as process error
+
+*N*~*t+1*~ = *N*~*t* $\lambda$~*t*~
+
+$\lambda$~*t*~ $\sim$ Normal($\mu$~*t*, $\sigma$~$\lambda$~^2^)
+
+We assume:
+
+Growth rate: $\lambda$~*t*~ are realizations of a normal random process with mean $\mu$~*t* and variance $\sigma$~$\lambda$~^2^
+
+The mean is the long-term growth rate of the population
+
+The variance is a measure of enviornmental stochastisitiy
+
+* Note the population size is not define in model for the first year * 
+
+- We can either specify the inital state a prior for *N*~1~ or fix it to an observed value (making the assumption that the first count is error free)
+
+The next set of equations maps of the true state of the process onto the observed data
+
+*y*~t~ = *N*~t~ + $\epsilon$~t~
+
+$\epsilon$~t~ $\sim$ Normal(0, $\sigma$~$\lambda$~^2^)
+
+This says that we make an observation *y* in year *t* with an observation error of magnitude $\epsilon$~t~ and that these errors in the counts are around the true size of the population (*N*~t~) with variance $\sigma$~$\lambda$~^2^. 
+
+# 5.2. A simple model
+
+First we simulate data in a simple context
+
+Scenario: We are interested in ibex population dynamics. The initial population size is 30 individuals and we monitor them for 25 years. The population grows annual at 2% on average. The surveys are not perfect and we assume the variance in population counts is 20 individuals.
+
+```{r}
+# Define underlying parameters
+n.years <- 25           # Number of years
+N1 <- 30                # Initial population size
+mean.lambda <- 1.02     # Mean annual population growth rate
+sigma2.lambda <- 0.02   # Process (temporal) variation of the growth rate
+sigma2.y <- 20          # Variance of the observation error
+
+# Define empty vectors to hold observed data (y) and true data (N)
+y <- N <- numeric(n.years)
+
+# Fill in N[1] with the number of individuals seen the first year
+N[1] <- N1
+
+# Simulate the data under the assumption of exponential population growth
+lambda <- rnorm(n.years-1, mean.lambda, sqrt(sigma2.lambda))
+for (t in 1:(n.years-1)){
+   N[t+1] <- N[t] * lambda[t]
+   }
+
+# Finally generate the observed data conditonal on the trye population size
+for (t in 1:n.years){
+   y[t] <- rnorm(1, N[t], sqrt(sigma2.y))
+   }
+```
+
+Specify the model
+
+```{r}
+# Specify model in BUGS language
+{
+sink("ssm.jags")
+cat("
+model { 
+# Priors and constraints
+N.est[1] ~ dunif(0, 500)            # Prior for initial population size
+mean.lambda ~ dunif(0, 10)          # Prior for mean growth rate
+
+sigma.proc ~ dunif(0, 10)           # Prior for sd of state process
+sigma2.proc <- sigma.proc * sigma.proc
+tau.proc <- pow(sigma.proc, -2)
+
+sigma.obs ~ dunif(0, 100)           # Prior for sd of observation process
+sigma2.obs <- sigma.obs *sigma.obs
+tau.obs <- pow(sigma.obs, -2)
+
+# Likelihood
+# State process
+for (t in 1:(T-1)){
+   lambda[t] ~ dnorm(mean.lambda, tau.proc) 
+   N.est[t+1] <- N.est[t] * lambda[t] 
+}
+
+# Observation process
+for (t in 1:T) {
+   y[t] ~ dnorm(N.est[t], tau.obs)
+   }
+}
+",fill = TRUE)
+sink()
+}
+```
+
+Now bundle the data and get the information ready to be analyzed
+
+```{r}
+# Bundle data
+jags.data <- list(y = y, T = n.years)
+
+# Initial values
+inits <- function(){list(sigma.proc = runif(1, 0, 5), 
+                         mean.lambda = runif(1, 0.1, 2), 
+                         sigma.obs = runif(1, 0, 10), 
+                         N.est = c(runif(1, 20, 40), rep(NA, (n.years-1))))} 
+
+# Parameters monitored
+parameters <- c("lambda", "mean.lambda", "sigma2.obs", "sigma2.proc", "N.est")
+
+# MCMC settings
+ni <- 25000
+nt <- 3
+nb <- 10000
+nc <- 3
+
+# Call JAGS from R (BRT <1 min)
+ssm <- jags(jags.data, inits, parameters, "ssm.jags", n.chains = nc, n.thin = nt, n.iter = ni, n.burnin = nb, parallel = TRUE)
+```
+
+
+

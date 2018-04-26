@@ -1,0 +1,11 @@
+﻿Week,Date,Subject,Book chapters
+1,5-Apr,Course outline & Github,---
+2,12-Apr,Bayesian vs. Frequentist,"Chpt 1,2"
+3,19-Apr,GLM in R and JAGS,Chpt 3
+4,26-Apr,Random effects & State-space models,"Chpt 4, 5"
+5,3-May,Analyzing mark-recapture data (CJS models),"Chpt 7,9"
+6,10-May,Analyzing mark-recapture data (JS models),Chpt 10
+7,17-May,Occupancy & N-mixture models,Chpt 13
+8,24-May,Student presentations,---
+9,31-May,Student presentations,---
+10,7-Jun,Student presentations,---

@@ -1,0 +1,34 @@
+
+model {
+
+# Priors
+# Fixed effects
+beta ~ dunif(0, 5)
+
+# Random intercept- Retrieve a different intercept value for each population (1, 2, and 3)
+for(i in 1:3){
+  alpha[i] ~ dnorm(mu, tau1)
+}
+
+# Hyper-priors
+# Mean estimate of normal distributon for population
+mu ~ dunif(0, 50)
+
+tau1 <- 1/ (sd * sd)
+sd ~ dunif(0, 50)
+
+tau2 <- 1/ (sigma * sigma)
+sigma ~ dunif(0, 10)
+
+# Likelihood: Note key components of a GLM on one line each
+for (i in 1:n){
+
+   mass[i] ~ dnorm(mu2[i], tau2)        
+      # 1. Distribution for random part
+
+   mu2[i] <- alpha[Population[i]] + beta * length[i]     
+          # 2. Link function & linear predictor
+
+   } #i
+}
+
