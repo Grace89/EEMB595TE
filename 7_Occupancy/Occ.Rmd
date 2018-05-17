@@ -1,0 +1,537 @@
+---
+title: "Theoretical Ecology 
+
+\n(EEMB 595TE) Spring 2018
+
+\n Class 7: Occupancy & N-mixture models"
+
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+---
+
+<img src="/Users/Cici/EEMB595TE/1_Intro_to_Github/UCSB_logo.png" style="position:absolute;top:9px;right:115px;width:150px;height=240px" />
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<br>
+
+## Update the course material for this week
+
+To update the course repository on your computer, you will ``pull`` a current copy of the repository. To do this: 
+
+1.  Open your terminal/bash.
+
+2.  Navigate to the course repository. If this is in your root directory then type:
+
+    ```bash
+    cd
+    cd EEMB595TE
+    ```
+    
+3.  Paste the following into the terminal/bash:
+
+    ```bash
+    git pull
+    ```
+
+<br>
+
+## Last weeks objectives
+
+(1) Learn the differences between types of mark-recapture models
+
+(2) Learn to analyze mark-recapture data
+
+<br>
+
+## This weeks objectives
+
+(1) Learn the the use and applications of occupancy and N-mixture models
+
+(2) Learn to extrend these models to multi-season frameworks
+
+<br>
+
+## Goals
+
+To correct for imperfect species/individual detection probability **without** uniquely marking individuals (like we learned last week)
+
+## How do you do this?
+
+We correct for imperct species/individaul detection by repeatedly sampling the *site* unit. 
+
+Repeatedly sampling the site- known as repeated surveys:
+    
+  - Can be repeated *temporal* surveys
+  
+  - Assuming two sites nearby have the same probability of occupancy and detection (*spatial*)
+
+## Why should we seperate the ecological and observations parts of the data?
+
+- The extent of the species distribution will be underestimated when the detection probability is < 1
+
+  - If a species is not found at all sites where it occures, then the perceived range will be smaller than the actual range.
+
+- Estimates of covariate relationships will be biased towards zero when detection probability is < 1
+
+  - Shown via simulations
+
+- Factors that affect the difficulty with which a species is found may end up in a predictive models of species occurrence or may mask factors that do affect species occurence
+
+  - Confounding the ecological and observational process (i.e., habitat A = more open, habitat B = more wooded)
+
+## Important definitions
+
+Occupancy probability: The probability that a site is occupied (i.e., that the abundance is greater than zero)
+
+  - The realization of this probabilty gives rise to the proportion of sites occupied (i.e., filled) 
+  
+Detection probability: The probability that you will encounter an individual, *given* that it is present
+
+## Example
+
+We want to know the distribution of this ant:
+
+```{r  out.width = "90%", echo = FALSE}
+knitr::include_graphics("/Users/Cici/EEMB595TE/7_Occupancy/Ant.png") 
+``` 
+
+in the Southeast United States:
+
+```{r  out.width = "90%", echo = FALSE}
+knitr::include_graphics("/Users/Cici/EEMB595TE/7_Occupancy/map_region-southeast.png") 
+``` 
+
+## Data collection design
+
+We sample 1000 sites for the ants and collect: detection/non-detection data
+
+?? Why didn't I call this presence/absence data??
+
+At each site, we go looking for ants at the *same site* for two consecutive days. 
+
+## Simple occupancy model
+
+$y_{i,j}$ = observed data = detection/non-detection of the species at site *i* during survey *j*
+
+  - $y_{i,j}$ = 0 (species not detected at site *i* during survey *j*)
+  
+  - $y_{i,j}$ = 1 (species detected at site *i* during survey *j*)
+  
+$z_{i}$ = latent state variable =  presence/absence of the species at site *i* 
+
+  - $z_{i}$ = 0 (species absent at site *i*)
+  
+  - $z_{i}$ = 1 (species present at site *i*)
+
+The model:
+
+(1) Ecological process
+
+    $z_{i}$ $\sim$ Bernoulli($\psi$)
+
+    - $\psi$ = occupancy probability
+    
+    - To make $\psi_{i}$ a function of a covariate, we use:
+    
+        logit($\psi_{i}$) = $\alpha$ + $\beta$ $X_{i}$
+        
+        - ?? Why is $\psi$ indexed by *i* here??
+        
+    - Notice you can only add site level covariates to *z*
+
+(2) Observation process
+
+    $y_{i,j}$ $\sim$ Bernoulli($z_{i}$ *p*)
+    
+    - Note that *p* is conditional on $z_{i}$ by multiplying p and z
+
+    - ?? How would you make *p* a function of a covariate? And what would you need to change from the expression above? 
+
+    - Notice you can add site or survey level covariates to *y*
+
+<br>
+
+## Model assumptions
+
+Site-occupancy model assumptions (MacKenzie et al. 2002):
+
+(1) The occupancy status of a site does not change over the course of sampling (i.e., closed population)
+
+(2) The probability of occupancy is the same for all sites or any heterogeneity is related to covariates
+
+(3) The probability of detection is the same across all sites and observations or any heterogeneity is related to covariates
+
+(4) Detection histories at each location are independent
+
+## Model written in JAGS code
+
+```{r}
+{
+sink("model.txt")
+cat("
+model 
+{
+# Priors
+
+psi ~ dunif(0, 1)
+p ~ dunif(0, 1)
+
+# (1) Ecological model
+
+for(i in 1:nSites){
+
+  z[i] ~ dbern(psi)
+
+  for(j in 1:nSurveys){
+
+    y[i,j] ~ dbern(p.eff[i,j])
+
+    p.eff[i,j] <-  z[i] * p
+
+  } # j
+
+} # i
+
+}
+",fill = TRUE)
+sink()
+}
+```
+
+## Bundle the data
+
+```{r}
+dat <- read.csv("~/EEMB595TE/7_Occupancy/ant_data.csv")[,-1]
+
+jags.data <- list( y = dat,
+                   nSites = nrow(dat),
+                   nSurveys = ncol(dat))
+
+zinit <- apply(dat, 1, max)
+
+inits <- function(){list(psi = runif(1, 0, 1),
+                         p = runif(1, 0, 1),
+                         z = zinit
+)}
+
+#------- Parameters monitored
+
+params <- c("psi", 
+            "p")
+
+#------- MCMC settings
+ni <- 10000
+nb <- 1000
+nt <- 10
+nc <- 3
+na <- 10000
+
+#------ call Library
+library("jagsUI")
+
+#------- Call JAGS from R
+
+out <- jags(data = jags.data, inits = inits, parameters.to.save = params, model.file = "model.txt", n.chains = nc, n.thin = nt, n.iter = ni, n.burnin = nb, n.adapt = na, parallel = TRUE)
+
+print(out, dig = 3)
+```
+
+## Check the chains
+
+```{r fig.width=9, fig.height=8, tidy=TRUE, echo=TRUE, include=TRUE, eval = TRUE}
+plot(out)
+```
+
+## Check the parameters from the model with the truth 
+
+**The data set we used was actually simulated! We know the truth!**
+
+```{r echo = FALSE}
+
+# Define parameters
+psi <- 0.6 # Occupancy probability
+p <- 0.3   # Detection probability
+
+#--- Define parameter values
+true <- c(psi,
+          p
+          )
+
+names <- c("Occupancy",
+           "Detection"
+          )
+
+names <- factor(names, levels = names)
+
+mod.mean <- c(
+  out$mean$psi,
+  out$mean$p
+              )
+
+mod.q2.5 <- c(
+  out$q2.5$psi,
+  out$q2.5$p
+  )
+
+mod.q97.5 <- c(
+  out$q97.5$psi,
+  out$q97.5$p
+)
+
+dat <- data.frame(names = names, true = true, mod.mean = mod.mean, mod.q2.5 = mod.q2.5, mod.q97.5 = mod.q97.5)
+
+library(ggplot2)
+
+cols <- c("Truth" = "red", "Estimated" = "black")
+
+ggplot(dat, aes(x= names, y=mod.mean, ymin=mod.q2.5, ymax=mod.q97.5))+ 
+  geom_linerange(size = 1) +
+  geom_point(size = 3, aes(x = names, y = mod.mean, col = "Estimated")) +
+  geom_point(size = 3, aes(x = names, y = true, col = "Truth")) +
+  scale_colour_manual("Values", values=cols)+
+  geom_hline(yintercept = 0, lty=2) +
+  coord_flip() + ylab('Parameter estimates') +
+  xlab("Parameter names") +
+  theme_bw()+ 
+  theme(axis.text.x = element_text(size = 17, color = "black"), 
+        axis.text.y = element_text(size = 17, color = "black"), 
+        axis.title.y = element_text(size = 17, color = "black"), 
+        axis.title.x =element_text(size = 17, color = "black"),
+        legend.title =element_text(size = 17, color = "black"),
+        legend.text =element_text(size = 17, color = "black"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank()) 
+```
+
+We can add covariates.
+
+We can add spatial autocorrelation (see Yackulic et al. 2012).
+
+We can add multiple states (see Bailey et al. 2014).
+
+We can add multiple seasons.
+
+  - The principles we learned about last week about transition matrices can come into play here.
+
+## N-mixture model
+
+N-mixture model is used in the case where we have abundance of animals at sites that are repeatedly surveys (similar to occupancy model; Royle, 2004).
+
+Also known as the Royle model and other names.
+
+The model:
+
+$x_{i,j}$ = observed data = abundance of the species at site *i* during survey *j*
+
+$N_{i}$ = latent state variable = true abundance of the species at site *i* 
+
+The model:
+
+(1) Ecological process
+
+    $N_{i}$ $\sim$ Poisson($\lambda$)
+
+    - $\lambda$ = average number of animals across the site
+        
+    - Notice you can only add site level covariates to *z*
+
+(2) Observation process
+
+    $x_{i,j}$ $\sim$ Binomial($N_{i}$, *p*)
+
+    - ?? Why are we using a Binomial distribution here instead of a Bernoulli?? 
+
+## Model Assumptions
+
+N-mixture model assumptions (Royle, 2004):
+
+(1) The ecological state (e.g., abundance) is constant during the period over which replicate surveys are conducted (closure assumption)
+
+(2) Detection probability is constant for all individuals present during the survey
+
+(3) The distributions of abundance and detection are adequately described by the chosen parametric forms (e.g., Poisson, binomial)
+
+(4) There are no false positives; such as double counts
+
+<br>
+
+## Write the model in JAGS code
+
+```{r}
+{
+sink("model.txt")
+cat("
+model 
+{
+# Priors
+
+lambda ~ dunif(0, 20)
+p ~ dunif(0, 1)
+
+# (1) Ecological model
+
+for(i in 1:nSites){
+
+  N[i] ~ dpois(lambda)
+
+  for(j in 1:nSurveys){
+
+    x[i,j] ~ dbin(p, N[i])
+
+  } # j
+
+} # i
+
+}
+",fill = TRUE)
+sink()
+}
+```
+
+## Bundle the data
+
+```{r}
+dat <- read.csv("~/EEMB595TE/7_Occupancy/ant_data_abund.csv")[,-1]
+
+jags.data <- list( x = dat,
+                   nSites = nrow(dat),
+                   nSurveys = ncol(dat))
+
+Ninit <- apply(dat, 1, max)
+
+inits <- function(){list(lambda = runif(1, 0, 10),
+                         p = runif(1, 0, 1),
+                         N = Ninit
+)}
+
+#------- Parameters monitored
+
+params <- c("lambda", 
+            "p")
+
+#------- MCMC settings
+ni <- 10000
+nb <- 1000
+nt <- 10
+nc <- 3
+na <- 10000
+
+#------ call Library
+library("jagsUI")
+
+#------- Call JAGS from R
+
+out <- jags(data = jags.data, inits = inits, parameters.to.save = params, model.file = "model.txt", n.chains = nc, n.thin = nt, n.iter = ni, n.burnin = nb, n.adapt = na, parallel = TRUE)
+
+print(out, dig = 3)
+```
+
+## Check the chains
+
+```{r fig.width=9, fig.height=8, tidy=TRUE, echo=TRUE, include=TRUE, eval = TRUE}
+plot(out)
+```
+
+```{r echo = FALSE}
+
+# Define parameters
+lambda <- 4 # Average number of animals
+p <- 0.3   # Individual detection probability
+
+#--- Define parameter values
+true <- c(lambda,
+          p
+)
+
+names <- c("Lambda",
+           "Detection"
+)
+
+names <- factor(names, levels = names)
+
+mod.mean <- c(
+  out$mean$lambda,
+  out$mean$p
+)
+
+mod.q2.5 <- c(
+  out$q2.5$lambda,
+  out$q2.5$p
+)
+
+mod.q97.5 <- c(
+  out$q97.5$lambda,
+  out$q97.5$p
+)
+
+dat <- data.frame(names = names, true = true, mod.mean = mod.mean, mod.q2.5 = mod.q2.5, mod.q97.5 = mod.q97.5)
+
+library(ggplot2)
+
+cols <- c("Truth" = "red", "Estimated" = "black")
+
+ggplot(dat, aes(x= names, y=mod.mean, ymin=mod.q2.5, ymax=mod.q97.5))+ 
+  geom_linerange(size = 1) +
+  geom_point(size = 3, aes(x = names, y = mod.mean, col = "Estimated")) +
+  geom_point(size = 3, aes(x = names, y = true, col = "Truth")) +
+  scale_colour_manual("Values", values=cols)+
+  geom_hline(yintercept = 0, lty=2) +
+  coord_flip() + ylab('Parameter estimates') +
+  xlab("Parameter names") +
+  theme_bw()+ 
+  theme(axis.text.x = element_text(size = 17, color = "black"), 
+        axis.text.y = element_text(size = 17, color = "black"), 
+        axis.title.y = element_text(size = 17, color = "black"), 
+        axis.title.x =element_text(size = 17, color = "black"),
+        legend.title =element_text(size = 17, color = "black"),
+        legend.text =element_text(size = 17, color = "black"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank()) 
+```
+
+## Multi-season occupancy model
+
+This is the multi-season extension of the occupancy model.
+
+Assume periods of open population dynamics between periods of closed population dynamics (when you do the surveys).
+
+There is code in the folder to run this model.
+
+You estimate:
+
+  - True occupancy per season
+  
+  - Extinction rate for habitats
+  
+  - Colonization rates for habitats
+  
+  - Species detection probability
+
+<br>
+
+## Generalized N-mixture model
+
+This is the multi-season extension of the N-mixture model.
+
+Assume periods of open population dynamics between periods of closed population dynamics (when you do the surveys).
+
+There is code in the folder to run this model.
+
+You estimate:
+
+  - True average abundance
+  
+  - Apparent survival probability (survival + emigration)
+  
+  - Recruitment rate (immigration + births)
+  
+  - Individual detection probability
+
+<br>

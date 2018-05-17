@@ -1,0 +1,26 @@
+sink("model.txt")
+cat("
+model 
+{
+# Priors
+
+lambda ~ dunif(0, 20)
+p ~ dunif(0, 1)
+
+# (1) Ecological model
+
+for(i in 1:nSites){
+
+  N[i] ~ dpois(lambda)
+
+  for(j in 1:nSurveys){
+
+    x[i,j] ~ dbin(p, N[i])
+
+  } # j
+
+} # i
+
+}
+",fill = TRUE)
+sink()
